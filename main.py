@@ -11,8 +11,12 @@ app.geometry("1280x650")
 app.columnconfigure(0,weight=1)
 app.configure(fg_color="#0D1B2A")
 
-arduino = serial.Serial(port="COM3", baudrate=9600, timeout=1)
-time.sleep(2)
+try:
+    arduino = serial.Serial(port="COM3", baudrate=9600, timeout=1)
+    time.sleep(2)
+except ValueError:
+    arduino=None
+    print("No se pudo Conectar a puerto")
 
 tab_principal=customtkinter.CTkTabview(app,width=780,text_color="#000",
                                        fg_color="#1B263B",segmented_button_fg_color="#f2f4f7",
@@ -67,21 +71,20 @@ canvas.get_tk_widget().pack(fill="both", expand=True)
 def leer_datos_arduino():
     while True:
         try:
-            linea = arduino.readline().decode().strip() 
-            if linea: 
-                datos = linea.split(",")  
-                if len(datos) == 2: 
+            linea = arduino.readline().decode('utf-8', errors='ignore').strip()
+            if linea and ',' in linea:
+                datos = linea.split(',')  
+                if len(datos) == 3: 
                     distancia = float(datos[0]) 
                     velocidad = float(datos[1])
-                    tiempo=0
-                    if velocidad>0: 
-                       tiempo=distancia/velocidad
+                    tiempo=float(datos[2])
+                       
                     # Agregar datos a las listas
                     distancias.append(distancia)
                     velocidades.append(velocidad)
                     tiempos.append(tiempo)
 
-                    if len(distancias) > 10:
+                    if len(distancias) > 100:
                         distancias.pop(0)
                         velocidades.pop(0)
                         
@@ -200,3 +203,6 @@ button_solution=customtkinter.CTkButton(tab_radar,text="Guardar Valores",
 button_solution.grid(row=3, columnspan=3,padx=10,ipady=5)
 
 app.mainloop()
+
+if arduino and arduino.is_open:
+    arduino.close()
