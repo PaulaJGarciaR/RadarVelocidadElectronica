@@ -60,10 +60,10 @@ ax.set_ylabel("Velocidad (cm/s)")
 ax.grid()
 
 #Listas para guardar datos
-distancias=[]
-velocidades=[]
-tiempos=[]
-Aceleracion=[]
+distancias=[0]
+velocidades=[0]
+tiempos=[0]
+aceleraciones=[0]
 
 canvas = FigureCanvasTkAgg(fig, master=frame_graph)
 canvas.get_tk_widget().pack(fill="both", expand=True)
@@ -72,21 +72,24 @@ def leer_datos_arduino():
     while True:
         try:
             linea = arduino.readline().decode('utf-8', errors='ignore').strip()
-            if linea and ',' in linea:
-                datos = linea.split(',')  
+            if linea:
+                datos = linea.split()  
                 if len(datos) == 3: 
                     distancia = float(datos[0]) 
                     velocidad = float(datos[1])
-                    tiempo=float(datos[2])
+                    tiempo = float(datos[2])
+                    aceleracion=round((velocidad/tiempo),4)
                        
                     # Agregar datos a las listas
                     distancias.append(distancia)
                     velocidades.append(velocidad)
                     tiempos.append(tiempo)
+                    aceleraciones.append(aceleracion)
 
                     if len(distancias) > 100:
                         distancias.pop(0)
                         velocidades.pop(0)
+                        tiempos.pop(0)
                         
                     actualizar_grafica()
         except Exception as e:
